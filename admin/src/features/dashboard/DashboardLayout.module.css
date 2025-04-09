@@ -1,0 +1,10 @@
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  background-color: #f9f9f9;
+  overflow-x: auto;
+}

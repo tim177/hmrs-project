@@ -1,0 +1,131 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: white;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.modalHeader {
+  background-color: #5a0099;
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalBody {
+  padding: 24px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.formGroup {
+  margin-bottom: 0;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #5a0099;
+  font-weight: 500;
+}
+
+.formInput {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+}
+
+.selectWrapper {
+  position: relative;
+}
+
+.formSelect {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  appearance: none;
+  background-color: white;
+}
+
+.selectIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  pointer-events: none;
+}
+
+.inputWithIcon {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  pointer-events: none;
+}
+
+.formActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.saveButton {
+  background-color: #5a0099;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 40px;
+  font-weight: 500;
+  cursor: pointer;
+}
