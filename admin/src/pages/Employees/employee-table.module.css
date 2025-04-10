@@ -57,14 +57,27 @@
 }
 
 .filterDropdown {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+  position: relative;
+  width: 150px;
+}
+
+.filterSelect {
+  width: 100%;
   padding: 8px 16px;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  cursor: pointer;
+  appearance: none;
   background-color: white;
+  cursor: pointer;
+}
+
+.filterIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #666;
 }
 
 .searchContainer {
@@ -91,7 +104,7 @@
 .tableContainer {
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   overflow: auto;
   flex: 1;
 }
@@ -115,6 +128,12 @@
   color: #333;
 }
 
+.messageCell {
+  text-align: center;
+  padding: 30px 16px;
+  color: #666;
+}
+
 .profileAvatar {
   width: 36px;
   height: 36px;
@@ -123,6 +142,30 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #666;
+}
+
+.statusDropdown {
+  position: relative;
+  width: 120px;
+}
+
+.statusSelect {
+  width: 100%;
+  padding: 6px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  appearance: none;
+  background-color: white;
+  cursor: pointer;
+}
+
+.statusIcon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
   color: #666;
 }
 
@@ -144,7 +187,7 @@
   right: 0;
   background-color: white;
   border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   z-index: 10;
   min-width: 120px;
 }
@@ -159,10 +202,6 @@
   cursor: pointer;
   font-size: 14px;
   color: #333;
-}
-
-.dropdownItem:hover {
-  background-color: #f5f5f5;
 }
 
 .dropdownItem:not(:last-child) {

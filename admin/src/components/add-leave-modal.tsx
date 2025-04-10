@@ -44,7 +44,17 @@ export default function AddLeaveModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const formPayload = new FormData();
+    formPayload.append("fullName", formData.employeeName);
+    formPayload.append("position", formData.designation);
+    formPayload.append("date", formData.leaveDate);
+    formPayload.append("reason", formData.reason);
+    formPayload.append("status", "New");
+    if (formData.documents) {
+      formPayload.append("documents", formData.documents);
+    }
+
+    onSave(formPayload);
     onClose();
   };
 
@@ -111,10 +121,12 @@ export default function AddLeaveModal({
                   name="documents"
                   className={styles.input}
                   readOnly
+                  value={formData.documents ? formData.documents.name : ""}
                   onClick={() =>
                     document.getElementById("file-upload")?.click()
                   }
                 />
+
                 <Upload className={styles.uploadIcon} size={18} />
                 <input
                   type="file"

@@ -1,16 +1,20 @@
 const express = require("express");
 const cors = require("cors");
+
 const authRoutes = require("./routes/auth");
 const employeeRoutes = require("./routes/employee");
+const leaveRoutes = require("./routes/leaves");
 
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
 
 // Define the routes here
 app.use("/api/user", authRoutes);
 app.use("/api/employee", employeeRoutes);
+app.use("/api/leaves", leaveRoutes);
 
 // Catch all route for undefined paths
 app.all("*", (req, res) => {

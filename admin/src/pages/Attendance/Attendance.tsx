@@ -1,95 +1,150 @@
-import React, { useEffect, useState } from "react";
-import { Search, ChevronDown, MoreVertical, User } from "lucide-react";
-import styles from "./Attendance.module.css";
-import EditEmployeeModal from "../../components/edit-employee-modal";
+import { useState, useEffect } from "react";
+import { Search, MoreVertical, ChevronDown, User } from "lucide-react";
+import styles from "./attendance.module.css";
 import Header from "../../features/dashboard/Header";
 
-type Employee = {
-  _id: string;
-  fullName: string;
+interface Employee {
+  id: string;
+  name: string;
   position: string;
   department: string;
   task: string;
   status: string;
-};
+}
 
-export default function AttendanceTable() {
+export default function AttendancePage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
-    null
-  );
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch employees from backend
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
+        setIsLoading(true);
         const res = await fetch(
           "http://localhost:5000/api/employee/candidates"
         );
         const data = await res.json();
+
+        // Map the data to our required format
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const filtered = data.map((emp: any) => ({
-          _id: emp._id,
-          fullName: emp.fullName,
+          id: emp._id,
+          name: emp.fullName,
           position: emp.position,
           department: emp.department,
-          task: emp.task || "N/A", // fallback if task is missing
-          status: emp.status || "Pending", // fallback
+          task: emp.task || "--",
+          status: emp.attendanceStatus || "Absent",
         }));
+
         setEmployees(filtered);
+        setFilteredEmployees(filtered);
       } catch (error) {
         console.error("Failed to fetch employees:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchEmployees();
   }, []);
 
-  const handleActionClick = (employeeId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setOpenDropdownId(openDropdownId === employeeId ? null : employeeId);
+  // Apply filters when status or search term changes
+  useEffect(() => {
+    let filtered = employees;
+
+    // Apply status filter
+    if (statusFilter !== "All") {
+      filtered = filtered.filter(
+        (employee) => employee.status === statusFilter
+      );
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (employee) =>
+          employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          employee.department
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          employee.task.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredEmployees(filtered);
+  }, [employees, statusFilter, searchTerm]);
+
+  // Handle status change
+  const handleStatusChange = async (employeeId: string, newStatus: string) => {
+    try {
+      // Update UI immediately for better UX
+      const updatedEmployees = employees.map((employee) =>
+        employee.id === employeeId
+          ? { ...employee, status: newStatus }
+          : employee
+      );
+      setEmployees(updatedEmployees);
+
+      // Send update to backend
+      const response = await fetch(
+        `http://localhost:5000/api/employee/candidates/${employeeId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            employeeId,
+            attendanceStatus: newStatus,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("Failed to update status");
+      } else {
+        console.log("Status updated successfully");
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
   };
 
-  const handleEditClick = (employee: Employee, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedEmployee(employee);
-    setIsModalOpen(true);
-    setOpenDropdownId(null);
-  };
-
-  const handleDeleteClick = (employeeId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    console.log(`Delete employee with ID: ${employeeId}`);
-    setOpenDropdownId(null);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedEmployee(null);
-  };
-
-  const handleClickOutside = () => {
-    setOpenDropdownId(null);
-  };
+  if (isLoading) {
+    return <div className={styles.loading}>Loading...</div>;
+  }
 
   return (
-    <div className={styles.container} onClick={handleClickOutside}>
+    <div className={styles.container}>
       <Header title="Attendance" />
-
-      <div className={styles.filters}>
-        <div className={styles.filterDropdown}>
-          <span>Position</span>
-          <ChevronDown size={16} />
+      <div className={styles.controls}>
+        <div className={styles.filter}>
+          <select
+            className={styles.select}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="All">Status</option>
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+          </select>
         </div>
-
         <div className={styles.searchContainer}>
-          <Search className={styles.searchIcon} size={18} />
-          <input
-            type="text"
-            placeholder="Search"
-            className={styles.searchInput}
-          />
+          <div className={styles.searchBox}>
+            <Search className={styles.searchIcon} />
+            <input
+              type="text"
+              placeholder="Search"
+              className={styles.searchInput}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
@@ -97,7 +152,7 @@ export default function AttendanceTable() {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Profile</th>
+              <th className={styles.profileCol}>Profile</th>
               <th>Employee Name</th>
               <th>Position</th>
               <th>Department</th>
@@ -107,56 +162,66 @@ export default function AttendanceTable() {
             </tr>
           </thead>
           <tbody>
-            {employees.map((employee) => (
-              <tr key={employee._id}>
-                <td>
-                  <div className={styles.profileAvatar}>
-                    <User size={18} />
-                  </div>
-                </td>
-                <td>{employee.fullName}</td>
-                <td>{employee.position}</td>
-                <td>{employee.department}</td>
-                <td>{employee.task}</td>
-                <td>{employee.status}</td>
-                <td>
-                  <div
-                    className={styles.actionDropdownContainer}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      className={styles.actionButton}
-                      onClick={(e) => handleActionClick(employee._id, e)}
-                    >
+            {filteredEmployees.length > 0 ? (
+              filteredEmployees.map((employee) => (
+                <tr key={employee.id}>
+                  <td className={styles.profileCol}>
+                    <div className={styles.userIcon}>
+                      <User size={20} />
+                    </div>
+                  </td>
+                  <td>{employee.name}</td>
+                  <td>{employee.position}</td>
+                  <td>{employee.department}</td>
+                  <td>{employee.task}</td>
+                  <td>
+                    <div className={styles.statusDropdown}>
+                      <button
+                        className={`${styles.statusBtn} ${
+                          employee.status === "Present"
+                            ? styles.present
+                            : styles.absent
+                        }`}
+                      >
+                        {employee.status} <ChevronDown size={16} />
+                      </button>
+                      <div className={styles.statusOptions}>
+                        <div
+                          className={styles.statusOption}
+                          onClick={() =>
+                            handleStatusChange(employee.id, "Present")
+                          }
+                        >
+                          Present
+                        </div>
+                        <div
+                          className={styles.statusOption}
+                          onClick={() =>
+                            handleStatusChange(employee.id, "Absent")
+                          }
+                        >
+                          Absent
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <button className={styles.actionBtn}>
                       <MoreVertical size={18} />
                     </button>
-                    {openDropdownId === employee._id && (
-                      <div className={styles.actionDropdown}>
-                        <button
-                          className={styles.dropdownItem}
-                          onClick={(e) => handleEditClick(employee, e)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className={styles.dropdownItem}
-                          onClick={(e) => handleDeleteClick(employee._id, e)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={7} className={styles.noData}>
+                  No employees found
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
-
-      {isModalOpen && selectedEmployee && (
-        <EditEmployeeModal employee={selectedEmployee} onClose={closeModal} />
-      )}
     </div>
   );
 }

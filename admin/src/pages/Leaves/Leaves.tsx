@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { Search, ChevronDown, User, FileText } from "lucide-react";
 import Calendar from "react-calendar";
@@ -5,6 +6,8 @@ import styles from "./leaves.module.css";
 import "react-calendar/dist/Calendar.css";
 import Header from "../../features/dashboard/Header";
 import AddLeaveModal from "../../components/add-leave-modal";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
@@ -34,35 +37,71 @@ export default function SimpleLeavesPage() {
     setIsModalOpen(false);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSaveLeave = (leaveData: any) => {
-    // Here you would typically save the leave data to your backend
-    console.log("Leave data saved:", leaveData);
-    // You could also update your local state to show the new leave
+  const handleSaveLeave = async (formData: FormData) => {
+    try {
+      const res = await fetch("http://localhost:5000/api/leaves", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to add leave");
+      }
+
+      const savedLeave = await res.json();
+      setLeaves((prev) => [...prev, savedLeave]);
+      toast.success("Leave added successfully!");
+    } catch (error: any) {
+      console.error("Error saving leave:", error);
+      toast.error(`Error adding leave: ${error.message}`);
+    }
+  };
+
+  const handleStatusChange = async (leaveId: string, newStatus: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/leaves/${leaveId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update leave status");
+      }
+
+      setLeaves((prev) =>
+        prev.map((leave) =>
+          leave._id === leaveId
+            ? { ...leave, status: newStatus as Leave["status"] }
+            : leave
+        )
+      );
+      toast.success("Leave status updated!");
+    } catch (error: any) {
+      console.error("Error updating leave status:", error);
+      toast.error(`Error updating status: ${error.message}`);
+    }
   };
 
   useEffect(() => {
     const fetchLeaves = async () => {
       try {
-        const res = await fetch(
-          "http://localhost:5000/api/employee/candidates"
-        );
+        const res = await fetch("http://localhost:5000/api/leaves");
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to fetch leaves");
+        }
+
         const data = await res.json();
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const filteredLeaves = data.map((leave: any) => ({
-          _id: leave._id,
-          fullName: leave.fullName,
-          position: leave.position,
-          date: leave.date,
-          reason: leave.reason,
-          status: leave.status,
-          hasDocuments: leave.hasDocuments,
-        }));
-
-        setLeaves(filteredLeaves);
-      } catch (error) {
+        setLeaves(data);
+      } catch (error: any) {
         console.error("Failed to fetch leaves:", error);
+        toast.error(`Error fetching leaves: ${error.message}`);
       }
     };
 
@@ -124,7 +163,13 @@ export default function SimpleLeavesPage() {
                       </div>
                     </div>
                   </td>
-                  <td>{leave.date}</td>
+                  <td>
+                    {new Date(leave.date).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </td>
                   <td>{leave.reason}</td>
                   <td>
                     <div
@@ -133,7 +178,10 @@ export default function SimpleLeavesPage() {
                       }`}
                     >
                       <select
-                        defaultValue={leave.status}
+                        value={leave.status}
+                        onChange={(e) =>
+                          handleStatusChange(leave._id, e.target.value)
+                        }
                         className={styles.statusSelect}
                       >
                         {statusOptions.map((option) => (
@@ -185,7 +233,13 @@ export default function SimpleLeavesPage() {
                       </div>
                     </div>
                   </div>
-                  <div className={styles.approvedLeaveDate}>{leave.date}</div>
+                  <div className={styles.approvedLeaveDate}>
+                    {new Date(leave.date).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </div>
                 </div>
               ))}
           </div>

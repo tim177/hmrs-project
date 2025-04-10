@@ -1,7 +1,48 @@
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./Login.module.css";
 
+// Zod schema for validation
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+// TypeScript type from schema
+type LoginData = z.infer<typeof loginSchema>;
+
 export default function Login() {
+  const navigate = useNavigate();
+  const [serverError, setServerError] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginData) => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/user/login",
+        data
+      );
+      if (res.status === 200) {
+        navigate("/dashboard/candidates");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      setServerError(error.response?.data?.message || "Login failed");
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.logoContainer}>
@@ -39,7 +80,10 @@ export default function Login() {
         <div className={styles.rightSection}>
           <div className={styles.formContainer}>
             <h1>Welcome Back</h1>
-            <form className={styles.loginForm}>
+            <form
+              className={styles.loginForm}
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <div className={styles.formGroup}>
                 <label htmlFor="email">
                   Email Address<span className={styles.required}>*</span>
@@ -48,9 +92,13 @@ export default function Login() {
                   type="email"
                   id="email"
                   placeholder="Email Address"
-                  required
+                  {...register("email")}
                 />
+                {errors.email && (
+                  <p className={styles.error}>{errors.email.message}</p>
+                )}
               </div>
+
               <div className={styles.formGroup}>
                 <label htmlFor="password">
                   Password<span className={styles.required}>*</span>
@@ -60,33 +108,29 @@ export default function Login() {
                     type="password"
                     id="password"
                     placeholder="Password"
-                    required
+                    {...register("password")}
                   />
-                  <button type="button" className={styles.eyeIcon}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  </button>
                 </div>
+                {errors.password && (
+                  <p className={styles.error}>{errors.password.message}</p>
+                )}
               </div>
+
               <div className={styles.forgotPassword}>
                 <Link to="/forgot-password">Forgot Password?</Link>
               </div>
-              <button type="submit" className={styles.loginButton}>
-                Login
+
+              {serverError && <p className={styles.error}>{serverError}</p>}
+
+              <button
+                type="submit"
+                className={styles.loginButton}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Logging in..." : "Login"}
               </button>
             </form>
+
             <div className={styles.registerLink}>
               Don&apos;t have an account? <Link to="/register">Register</Link>
             </div>

@@ -21,6 +21,11 @@ const employeeSchema = new mongoose.Schema(
       enum: ["new", "selected", "rejected"],
       default: "new",
     },
+    attendanceStatus: {
+      type: String,
+      enum: ["Present", "Absent"],
+      default: "Absent",
+    },
   },
   { timestamps: true }
 );

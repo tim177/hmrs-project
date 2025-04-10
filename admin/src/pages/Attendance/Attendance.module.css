@@ -1,99 +1,62 @@
 .container {
   padding: 20px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
-.header {
+.loading {
+  text-align: center;
+  padding: 20px;
+}
+
+.controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.title {
-  font-size: 24px;
-  font-weight: 500;
-  color: #333;
-  margin: 0;
-}
-
-.headerActions {
+.filter {
   display: flex;
   align-items: center;
-  gap: 20px;
 }
 
-.iconButton {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #666;
-}
-
-.userProfile {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-}
-
-.userAvatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #666;
-}
-
-.filters {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.filterDropdown {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.select {
   padding: 8px 16px;
   border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  cursor: pointer;
+  border-radius: 8px;
   background-color: white;
 }
 
 .searchContainer {
-  position: relative;
-  width: 300px;
+  display: flex;
+  align-items: center;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0 12px;
 }
 
 .searchIcon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #888;
+  width: 16px;
+  height: 16px;
+  color: #666;
 }
 
 .searchInput {
-  padding: 8px 10px 8px 35px;
-  border: 1px solid #e0e0e0;
-  border-radius: 20px;
-  font-size: 14px;
+  border: none;
+  padding: 8px;
   outline: none;
+  font-size: 14px;
 }
 
 .tableContainer {
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  overflow: auto;
-  flex: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: 100%;
 }
 
 .table {
@@ -102,7 +65,7 @@
 }
 
 .table th {
-  background-color: #5a0099;
+  background-color: #4a0072;
   color: white;
   text-align: left;
   padding: 12px 16px;
@@ -111,60 +74,85 @@
 
 .table td {
   padding: 12px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  color: #333;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.profileAvatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+.profileCol {
+  width: 60px;
+}
+
+.userIcon {
+  width: 32px;
+  height: 32px;
   background-color: #f0f0f0;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #666;
 }
 
-.actionDropdownContainer {
+.statusDropdown {
   position: relative;
+  /* z-index: 100; */
+  display: inline-block;
 }
 
-.actionButton {
-  background: none;
+.statusBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 16px;
   border: none;
+  border-radius: 16px;
+  font-size: 14px;
   cursor: pointer;
-  color: #666;
-  padding: 5px;
 }
 
-.actionDropdown {
+.present {
+  background-color: #f0fdf4;
+  color: #22c55e;
+}
+
+.absent {
+  background-color: #fef2f2;
+  color: #ef4444;
+}
+
+.statusOptions {
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 0;
+  z-index: 100;
   background-color: white;
-  border-radius: 4px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-  min-width: 120px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 120px;
+  display: none;
+  margin-top: 4px;
 }
 
-.dropdownItem {
+.statusDropdown:hover .statusOptions {
   display: block;
-  width: 100%;
-  text-align: left;
-  padding: 10px 16px;
-  border: none;
-  background: none;
+}
+
+.statusOption {
+  padding: 8px 16px;
   cursor: pointer;
-  font-size: 14px;
-  color: #333;
 }
 
-.dropdownItem:hover {
-  background-color: #f5f5f5;
+.actionBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dropdownItem:not(:last-child) {
-  border-bottom: 1px solid #f0f0f0;
+.noData {
+  text-align: center;
+  padding: 20px;
+  color: #666;
 }
