@@ -60,9 +60,3 @@
   background-color: #4a0072;
   color: white;
 }
-
-@media (max-width: 640px) {
-  .modal {
-    width: 90%;
-  }
-}

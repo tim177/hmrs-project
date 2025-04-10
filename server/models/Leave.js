@@ -17,9 +17,15 @@ const leaveSchema = new mongoose.Schema(
       default: "New",
     },
     hasDocuments: { type: Boolean, default: false },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
 const Leave = mongoose.model("Leave", leaveSchema);
+
 module.exports = Leave;

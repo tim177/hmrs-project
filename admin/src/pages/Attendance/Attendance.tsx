@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { Search, MoreVertical, ChevronDown, User } from "lucide-react";
+import axios from "../../axiosConfig"; // ✅ make sure this points to the correct file
 import styles from "./attendance.module.css";
 import Header from "../../features/dashboard/Header";
 
@@ -24,14 +26,11 @@ export default function AttendancePage() {
     const fetchEmployees = async () => {
       try {
         setIsLoading(true);
-        const res = await fetch(
-          "http://localhost:5000/api/employee/candidates"
-        );
-        const data = await res.json();
+        const res = await axios.get("/api/employee/candidates", {
+          withCredentials: true,
+        });
 
-        // Map the data to our required format
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const filtered = data.map((emp: any) => ({
+        const filtered = res.data.map((emp: any) => ({
           id: emp._id,
           name: emp.fullName,
           position: emp.position,
@@ -56,14 +55,12 @@ export default function AttendancePage() {
   useEffect(() => {
     let filtered = employees;
 
-    // Apply status filter
     if (statusFilter !== "All") {
       filtered = filtered.filter(
         (employee) => employee.status === statusFilter
       );
     }
 
-    // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(
         (employee) =>
@@ -79,10 +76,8 @@ export default function AttendancePage() {
     setFilteredEmployees(filtered);
   }, [employees, statusFilter, searchTerm]);
 
-  // Handle status change
   const handleStatusChange = async (employeeId: string, newStatus: string) => {
     try {
-      // Update UI immediately for better UX
       const updatedEmployees = employees.map((employee) =>
         employee.id === employeeId
           ? { ...employee, status: newStatus }
@@ -90,26 +85,13 @@ export default function AttendancePage() {
       );
       setEmployees(updatedEmployees);
 
-      // Send update to backend
-      const response = await fetch(
-        `http://localhost:5000/api/employee/candidates/${employeeId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            employeeId,
-            attendanceStatus: newStatus,
-          }),
-        }
+      await axios.put(
+        `/api/employee/candidates/${employeeId}`,
+        { attendanceStatus: newStatus },
+        { withCredentials: true }
       );
 
-      if (!response.ok) {
-        console.error("Failed to update status");
-      } else {
-        console.log("Status updated successfully");
-      }
+      console.log("Status updated successfully");
     } catch (error) {
       console.error("Error updating status:", error);
     }

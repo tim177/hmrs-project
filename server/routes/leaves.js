@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
+const { protect } = require("../controllers/auth");
 
-// Set up memory storage (you can switch to disk or cloud later)
+// Set up memory storage
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// Controller
 const {
   addLeave,
   getAllLeaves,
@@ -14,14 +14,10 @@ const {
   deleteLeave,
 } = require("../controllers/leave");
 
-// GET all leaves
-router.get("/", getAllLeaves);
-
-// ✅ POST with file upload support
-router.post("/", upload.single("documents"), addLeave);
-
-// PUT and DELETE
-router.patch("/:id", updateLeave);
-router.delete("/:id", deleteLeave);
+// ✅ PROTECTED ROUTES
+router.get("/", protect, getAllLeaves);
+router.post("/", protect, upload.single("documents"), addLeave);
+router.patch("/:id", protect, updateLeave);
+router.delete("/:id", protect, deleteLeave);
 
 module.exports = router;

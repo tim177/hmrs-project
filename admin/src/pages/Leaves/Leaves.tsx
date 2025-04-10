@@ -8,6 +8,7 @@ import Header from "../../features/dashboard/Header";
 import AddLeaveModal from "../../components/add-leave-modal";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "../../axiosConfig";
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
@@ -39,39 +40,24 @@ export default function SimpleLeavesPage() {
 
   const handleSaveLeave = async (formData: FormData) => {
     try {
-      const res = await fetch("http://localhost:5000/api/leaves", {
-        method: "POST",
-        body: formData,
+      const res = await axios.post("/api/leaves", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to add leave");
-      }
-
-      const savedLeave = await res.json();
-      setLeaves((prev) => [...prev, savedLeave]);
+      setLeaves((prev) => [...prev, res.data]);
       toast.success("Leave added successfully!");
     } catch (error: any) {
       console.error("Error saving leave:", error);
-      toast.error(`Error adding leave: ${error.message}`);
+      toast.error(
+        `Error adding leave: ${error.response?.data?.message || error.message}`
+      );
     }
   };
 
   const handleStatusChange = async (leaveId: string, newStatus: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/leaves/${leaveId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
+      await axios.patch(`/api/leaves/${leaveId}`, {
+        status: newStatus,
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to update leave status");
-      }
 
       setLeaves((prev) =>
         prev.map((leave) =>
@@ -83,25 +69,26 @@ export default function SimpleLeavesPage() {
       toast.success("Leave status updated!");
     } catch (error: any) {
       console.error("Error updating leave status:", error);
-      toast.error(`Error updating status: ${error.message}`);
+      toast.error(
+        `Error updating status: ${
+          error.response?.data?.message || error.message
+        }`
+      );
     }
   };
 
   useEffect(() => {
     const fetchLeaves = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/leaves");
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || "Failed to fetch leaves");
-        }
-
-        const data = await res.json();
-        setLeaves(data);
+        const res = await axios.get("/api/leaves");
+        setLeaves(res.data);
       } catch (error: any) {
         console.error("Failed to fetch leaves:", error);
-        toast.error(`Error fetching leaves: ${error.message}`);
+        toast.error(
+          `Error fetching leaves: ${
+            error.response?.data?.message || error.message
+          }`
+        );
       }
     };
 

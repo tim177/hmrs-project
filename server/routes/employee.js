@@ -1,14 +1,17 @@
 const express = require("express");
 const Employee = require("../models/Employee");
+const { protect } = require("../controllers/auth");
+const multer = require("multer");
 
 const router = express.Router();
 
-//Get all candidates with selected fields
-router.get("/candidates", async (req, res, next) => {
+// Setup multer for file upload
+const upload = multer({ dest: "uploads/" });
+
+// 👥 Get all candidates for the logged-in user
+router.get("/candidates", protect, async (req, res) => {
   try {
-    // Fetch all candidates with all fields
-    const candidates = await Employee.find({});
-    console.log(candidates);
+    const candidates = await Employee.find({ createdBy: req.user._id });
     res.status(200).json(candidates);
   } catch (err) {
     console.error("Error fetching candidates:", err);
@@ -16,54 +19,58 @@ router.get("/candidates", async (req, res, next) => {
   }
 });
 
-router.post("/candidates", async (req, res, next) => {
-  try {
-    console.log("candidaite 🤡🤡", req.body);
-    const { fullName, email, phone, position, experience, resume, agreement } =
-      req.body;
+// ➕ Create new candidate for the logged-in user
 
-    const newCandidate = new Employee({
-      fullName,
-      email,
-      phone,
-      position,
-      experience,
-      //resume: null
-    });
+router.post(
+  "/candidates",
+  protect,
+  upload.single("resume"),
+  async (req, res) => {
+    try {
+      const { fullName, email, phone, position, experience } = req.body;
 
-    await newCandidate.save();
+      console.log("💡 Body:", req.body); // Should contain text fields
+      console.log("📄 Resume file:", req.file); // Contains uploaded resume file info
 
-    res.status(201).json({ message: "Candidate Added Successfully" });
-  } catch (error) {
-    console.error("Error adding candidate:", error);
-    res.status(500).json({ message: "Failed to add candidate" });
+      const newCandidate = new Employee({
+        fullName,
+        email,
+        phone,
+        position,
+        experience,
+        resume: req.file?.filename, // or req.file.path if you want full path
+        createdBy: req.user._id,
+      });
+
+      await newCandidate.save();
+
+      res.status(201).json({ message: "Candidate Added Successfully" });
+    } catch (error) {
+      console.error("❌ Error adding candidate:", error);
+      res.status(500).json({ message: "Failed to add candidate" });
+    }
   }
-});
+);
 
-// Update a candidate
-router.put("/candidates/:id", async (req, res) => {
+// 🔁 Update candidate (only if it belongs to user)
+router.put("/candidates/:id", protect, async (req, res) => {
   try {
     const candidateId = req.params.id;
     const updatedData = req.body;
 
-    // Skip all validators
-    const updatedCandidate = await Employee.findByIdAndUpdate(
-      candidateId,
+    const candidate = await Employee.findOneAndUpdate(
+      { _id: candidateId, createdBy: req.user._id }, // 🎯 ensure user owns it
       { $set: updatedData },
-      {
-        new: true,
-        runValidators: false, // Ensure validators are off
-        overwrite: false, // Prevent full replacement
-      }
+      { new: true, runValidators: false, overwrite: false }
     );
 
-    if (!updatedCandidate) {
+    if (!candidate) {
       return res.status(404).json({ message: "Candidate not found" });
     }
 
     res.status(200).json({
       message: "Candidate updated successfully",
-      updatedCandidate,
+      updatedCandidate: candidate,
     });
   } catch (error) {
     console.error("Error updating candidate:", error);
@@ -71,12 +78,15 @@ router.put("/candidates/:id", async (req, res) => {
   }
 });
 
-// Delete a candidate
-router.delete("/candidates/:id", async (req, res) => {
+// ❌ Delete candidate (only if it belongs to user)
+router.delete("/candidates/:id", protect, async (req, res) => {
   try {
     const candidateId = req.params.id;
 
-    const deletedCandidate = await Employee.findByIdAndDelete(candidateId);
+    const deletedCandidate = await Employee.findOneAndDelete({
+      _id: candidateId,
+      createdBy: req.user._id,
+    });
 
     if (!deletedCandidate) {
       return res.status(404).json({ message: "Candidate not found" });

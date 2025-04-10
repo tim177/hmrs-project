@@ -2,6 +2,8 @@ import type React from "react";
 import { useState } from "react";
 import { X, Calendar, ChevronDown } from "lucide-react";
 import styles from "./edit-employee-modal.module.css";
+import axios from "../axiosConfig";
+import { toast } from "react-toastify";
 
 interface Employee {
   _id: string;
@@ -48,30 +50,29 @@ export default function EditEmployeeModal({
     e.preventDefault();
 
     try {
-      const response = await fetch(
+      const response = await axios.put(
         `http://localhost:5000/api/employee/candidates/${employee._id}`,
+        formData,
         {
-          method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          withCredentials: true,
         }
       );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
+      if (response.status === 200) {
+        toast.success("Employee updated successfully!");
+        onUpdate(response.data.updatedCandidate);
+        onClose();
+      } else {
+        console.error("Failed to update employee");
+        toast.error("Failed to update employee");
       }
-
-      // Update parent state
-      onUpdate(data.updatedCandidate);
-
-      onClose();
-    } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
       console.error("Error updating employee:", error);
-      alert("Failed to update employee");
+      toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
 

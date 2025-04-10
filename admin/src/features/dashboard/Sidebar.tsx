@@ -3,15 +3,28 @@ import { Search, Users, Calendar, FileText, LogOut } from "lucide-react";
 import styles from "./Sidebar.module.css";
 import { useState } from "react";
 import LogoutModal from "../../components/logout-modal";
+import { toast } from "react-toastify";
+import axios from "../../axiosConfig";
 
 export default function Sidebar() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Clear session if needed here (localStorage, context, etc.)
-    setIsLogoutModalOpen(false);
-    navigate("/register");
+  const handleLogout = async () => {
+    try {
+      await axios.post("/api/logout", {}, { withCredentials: true }); // adjust if your route is different
+
+      // Optional: Clear any stored tokens if you're using localStorage/sessionStorage
+      // localStorage.removeItem("token");
+
+      toast.success("Logged out successfully");
+
+      setIsLogoutModalOpen(false);
+      navigate("/register");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
+    }
   };
 
   return (

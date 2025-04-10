@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./Login.module.css";
-
+import { toast } from "react-toastify";
+import axios from "../../axiosConfig";
 // Zod schema for validation
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -30,16 +31,15 @@ export default function Login() {
 
   const onSubmit = async (data: LoginData) => {
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/user/login",
-        data
-      );
+      const res = await axios.post("/api/user/login", data); // uses baseURL from config
       if (res.status === 200) {
+        toast.success("Login successful! 🎉");
         navigate("/dashboard/candidates");
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      setServerError(error.response?.data?.message || "Login failed");
+      const message = error.response?.data?.message || "Login failed";
+      setServerError(message);
+      toast.error(message);
     }
   };
 

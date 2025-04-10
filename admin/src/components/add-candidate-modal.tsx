@@ -3,12 +3,18 @@ import type React from "react";
 import { X, Upload } from "lucide-react";
 import { useState } from "react";
 import styles from "./add-candidate-modal.module.css";
+import axios from "../axiosConfig";
+import { toast } from "react-toastify";
 
 interface AddCandidateModalProps {
   onClose: () => void;
+  onSave: () => void;
 }
 
-export default function AddCandidateModal({ onClose }: AddCandidateModalProps) {
+export default function AddCandidateModal({
+  onClose,
+  onSave,
+}: AddCandidateModalProps) {
   const [formData, setFormData] = useState<{
     fullName: string;
     email: string;
@@ -38,33 +44,33 @@ export default function AddCandidateModal({ onClose }: AddCandidateModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const data = {
-      fullName: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
-      position: formData.position,
-      experience: formData.experience,
-    };
+    const form = new FormData();
+    form.append("fullName", formData.fullName);
+    form.append("email", formData.email);
+    form.append("phone", formData.phone);
+    form.append("position", formData.position);
+    form.append("experience", formData.experience);
+    if (formData.resume) {
+      form.append("resume", formData.resume);
+    }
 
     try {
-      const res = await fetch("http://localhost:5000/api/employee/candidates", {
-        method: "POST",
+      await axios.post("/api/employee/candidates", form, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
-        body: JSON.stringify(data),
       });
 
-      if (!res.ok) throw new Error("Failed to submit candidate");
-
-      alert("Candidate added successfully!");
+      onSave();
+      toast.success("Candidate added successfully!");
       onClose();
-    } catch (err) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
       console.error(err);
-      alert("Submission failed");
+      toast.error(err.response?.data?.message || "Submission failed");
     }
+
     console.log("Form submitted:", formData);
-    onClose();
   };
 
   return (

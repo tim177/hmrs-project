@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import styles from "./employee-table.module.css";
 import EditEmployeeModal from "../../components/edit-employee-modal";
-
+import axios from "../../axiosConfig";
 interface Employee {
   _id: string;
   fullName: string;
@@ -36,38 +36,39 @@ export default function EmployeeTable() {
     null
   );
 
-  // Fetch employees from backend
+  const fetchEmployees = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axios.get("/api/employee/candidates", {
+        withCredentials: true,
+      });
+
+      const data = res.data;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const filtered = data.map((emp: any) => ({
+        _id: emp._id,
+        fullName: emp.fullName,
+        email: emp.email,
+        phone: emp.phone,
+        position: emp.position,
+        department: emp.department,
+        status: emp.status,
+        createdAt: emp.createdAt,
+      }));
+
+      setEmployees(filtered);
+      setFilteredEmployees(filtered);
+    } catch (error) {
+      console.error("Failed to fetch employees:", error);
+      setError("Failed to load employees. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial fetch on mount
   useEffect(() => {
-    const fetchEmployees = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(
-          "http://localhost:5000/api/employee/candidates"
-        );
-        const data = await res.json();
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const filtered = data.map((emp: any) => ({
-          _id: emp._id,
-          fullName: emp.fullName,
-          email: emp.email,
-          phone: emp.phone,
-          position: emp.position,
-          department: emp.department,
-          status: emp.status,
-          createdAt: emp.createdAt,
-        }));
-
-        setEmployees(filtered);
-        setFilteredEmployees(filtered);
-      } catch (error) {
-        console.error("Failed to fetch employees:", error);
-        setError("Failed to load employees. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchEmployees();
   }, []);
 
@@ -107,15 +108,14 @@ export default function EmployeeTable() {
   const handleDeleteClick = async (employeeId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/employee/candidates/${employeeId}`,
+      const response = await axios.delete(
+        `/api/employee/candidates/${employeeId}`,
         {
-          method: "DELETE",
+          withCredentials: true,
         }
       );
 
-      if (response.ok) {
-        // Remove employee from state
+      if (response.status === 200) {
         setEmployees(employees.filter((emp) => emp._id !== employeeId));
       } else {
         console.error("Failed to delete employee");
@@ -128,19 +128,13 @@ export default function EmployeeTable() {
 
   const handleStatusChange = async (employeeId: string, newStatus: string) => {
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/employee/candidates/${employeeId}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ status: newStatus }),
-        }
+      const response = await axios.put(
+        `/api/employee/candidates/${employeeId}`,
+        { status: newStatus },
+        { withCredentials: true }
       );
 
-      if (response.ok) {
-        // Update employee status in state
+      if (response.status === 200) {
         setEmployees(
           employees.map((emp) =>
             emp._id === employeeId ? { ...emp, status: newStatus } : emp

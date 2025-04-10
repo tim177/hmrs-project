@@ -1,10 +1,13 @@
 const Leave = require("../models/Leave");
 const Employee = require("../models/Employee");
 
-// Get all leaves
+// Get all leaves for current user
 const getAllLeaves = async (req, res) => {
   try {
-    const leaves = await Leave.find().sort({ date: -1 }); // optional: sort by date
+    const leaves = await Leave.find({ createdBy: req.user._id })
+      .sort({ date: -1 })
+      .populate("employeeId", "fullName position");
+
     res.json(leaves);
   } catch (err) {
     console.error("Error fetching leaves:", err);
@@ -17,11 +20,12 @@ const addLeave = async (req, res) => {
   try {
     const { fullName, date, reason } = req.body;
 
-    console.log("🧾 Request body:", req.body);
-    console.log("📎 Uploaded file:", req.file);
+    // Find employee created by the user
+    const employee = await Employee.findOne({
+      fullName,
+      createdBy: req.user._id,
+    });
 
-    // Find employee by full name
-    const employee = await Employee.findOne({ fullName });
     if (!employee) {
       return res.status(404).json({ message: "Employee not found" });
     }
@@ -38,7 +42,8 @@ const addLeave = async (req, res) => {
       position: employee.position,
       date,
       reason,
-      hasDocuments: !!req.file, // true if file is uploaded
+      hasDocuments: !!req.file,
+      createdBy: req.user._id, // <-- 💥 associate leave with user
     });
 
     const savedLeave = await newLeave.save();
@@ -49,15 +54,17 @@ const addLeave = async (req, res) => {
   }
 };
 
-// Update leave
+// Update leave (user scoped)
 const updateLeave = async (req, res) => {
   try {
     const leaveId = req.params.id;
     const updates = req.body;
 
-    const updatedLeave = await Leave.findByIdAndUpdate(leaveId, updates, {
-      new: true,
-    });
+    const updatedLeave = await Leave.findOneAndUpdate(
+      { _id: leaveId, createdBy: req.user._id }, // scoped to current user
+      updates,
+      { new: true }
+    );
 
     if (!updatedLeave) {
       return res.status(404).json({ message: "Leave not found" });
@@ -70,12 +77,16 @@ const updateLeave = async (req, res) => {
   }
 };
 
-// Delete leave
+// Delete leave (user scoped)
 const deleteLeave = async (req, res) => {
   try {
     const leaveId = req.params.id;
 
-    const deletedLeave = await Leave.findByIdAndDelete(leaveId);
+    const deletedLeave = await Leave.findOneAndDelete({
+      _id: leaveId,
+      createdBy: req.user._id,
+    });
+
     if (!deletedLeave) {
       return res.status(404).json({ message: "Leave not found" });
     }

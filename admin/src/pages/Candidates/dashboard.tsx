@@ -3,6 +3,7 @@ import { Search, ChevronDown, MoreVertical } from "lucide-react";
 import styles from "./dashboard.module.css";
 import AddCandidateModal from "../../components/add-candidate-modal";
 import Header from "../../features/dashboard/Header";
+import axios from "../../axiosConfig";
 
 type ICandidate = {
   _id: string;
@@ -22,31 +23,28 @@ export default function CandidatesTable() {
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
+  const fetchCandidates = async () => {
+    try {
+      const res = await axios.get("/api/employee/candidates");
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const filtered = res.data.map((emp: any) => ({
+        _id: emp._id,
+        fullName: emp.fullName,
+        email: emp.email,
+        phone: emp.phone,
+        position: emp.position,
+        status: emp.status,
+        createdAt: emp.createdAt,
+      }));
+
+      setCandidates(filtered);
+    } catch (error) {
+      console.error("Failed to fetch candidates:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchCandidates = async () => {
-      try {
-        const res = await fetch(
-          "http://localhost:5000/api/employee/candidates"
-        );
-        const data = await res.json();
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const filtered = data.map((emp: any) => ({
-          _id: emp._id,
-          fullName: emp.fullName,
-          email: emp.email,
-          phone: emp.phone,
-          position: emp.position,
-          status: emp.status,
-          createdAt: emp.createdAt,
-        }));
-        console.log(data);
-        setCandidates(filtered);
-      } catch (error) {
-        console.error("Failed to fetch candidates:", error);
-      }
-    };
-
     fetchCandidates();
   }, []);
 
@@ -122,7 +120,9 @@ export default function CandidatesTable() {
         </table>
       </div>
 
-      {isModalOpen && <AddCandidateModal onClose={closeModal} />}
+      {isModalOpen && (
+        <AddCandidateModal onClose={closeModal} onSave={fetchCandidates} />
+      )}
     </div>
   );
 }
