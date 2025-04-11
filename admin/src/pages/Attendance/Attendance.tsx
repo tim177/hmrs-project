@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Search, MoreVertical, ChevronDown, User } from "lucide-react";
 import axios from "../../axiosConfig"; // ✅ make sure this points to the correct file
-import styles from "./attendance.module.css";
+import styles from "./Attendance.module.css";
 import Header from "../../features/dashboard/Header";
 
 interface Employee {
