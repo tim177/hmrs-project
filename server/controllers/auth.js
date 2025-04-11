@@ -11,7 +11,7 @@ const sendToken = (user, statusCode, res) => {
   const options = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "Lax",
+    sameSite: "None",
     maxAge: 2 * 60 * 60 * 1000, //2hr
   };
 
