@@ -8,9 +8,14 @@ const leaveRoutes = require("./routes/leaves");
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://hmrs-frontend.onrender.com",
+];
+
 app.use(
   cors({
-    origin: true, // Reflects the request origin
+    origin: allowedOrigins,
     credentials: true,
   })
 );
