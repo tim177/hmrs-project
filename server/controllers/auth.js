@@ -82,13 +82,16 @@ const getPrivateData = asyncHandler(async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
+    console.log("Cookies received:", req.cookies); // 👈 check if token is visible
     const token = req.cookies.token;
 
     if (!token) {
-      return res.status(401).json({ message: "Unauthorized" });
+      return res.status(401).json({ message: "Unauthorized - no token" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    console.log("Decoded token:", decoded);
+
     const user = await User.findById(decoded.id).select("-password");
 
     if (!user) {
