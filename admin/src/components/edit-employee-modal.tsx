@@ -13,7 +13,7 @@ interface Employee {
   position: string;
   department: string;
   createdAt: string;
-  status: "New" | "Selected" | "Rejected";
+  status: string;
 }
 
 interface EditEmployeeModalProps {
@@ -28,7 +28,7 @@ export default function EditEmployeeModal({
   onUpdate,
 }: EditEmployeeModalProps) {
   const [formData, setFormData] = useState({
-    fullName: employee.fullName, // ✅ fixed from `name`
+    fullName: employee.fullName,
     email: employee.email,
     phone: employee.phone,
     department: employee.department,

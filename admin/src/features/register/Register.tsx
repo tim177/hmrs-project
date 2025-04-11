@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import styles from "./Register.module.css";
-
+import axios from "../../axiosConfig"; // adjust path if needed
+import { toast } from "react-toastify";
 // Define the validation schema with Zod
 const registerSchema = z
   .object({
@@ -51,33 +52,31 @@ export default function Home() {
     setIsSubmitting(true);
     setSubmitError("");
     setSubmitSuccess("");
+
     console.log("data is:", data);
+
     try {
-      const response = await fetch("http://localhost:5000/api/user/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: data.fullName,
-          email: data.email,
-          password: data.password,
-        }),
+      const response = await axios.post("/api/user/register", {
+        username: data.fullName,
+        email: data.email,
+        password: data.password,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Registration failed");
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Registration successful!...");
+        setSubmitSuccess("Registration successful! Navigating to dashboard.");
+        navigate("/dashboard/candidates");
+        reset();
+      } else {
+        throw new Error("Unexpected response status");
       }
-
-      setSubmitSuccess("Registration successful! Navigating to dashboard.");
-      navigate("/dashboard/candidates");
-
-      reset();
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        "Registration failed. Please try again.";
+      setSubmitError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
